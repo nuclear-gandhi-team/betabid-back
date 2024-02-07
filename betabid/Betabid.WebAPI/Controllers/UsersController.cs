@@ -72,4 +72,13 @@ public class UsersController : ControllerBase
 
         return Ok();
     }
+    
+    [HttpPost]
+    [Route("save")]
+    public async Task<IActionResult> SaveLot([FromBody] SaveLotRequestDto saveLotRequestDto)
+    {
+        await _userService.SaveLotAsync(saveLotRequestDto);
+
+        return Ok();
+    }
 }

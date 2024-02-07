@@ -136,14 +136,13 @@ public class UserService : IUserService
     public async Task SaveLotAsync(SaveLotRequestDto saveLotRequestDto)
     {
         var user = await _userManager.Users
-                       .Include(u => u.Lots)
                        .FirstOrDefaultAsync(u => u.Id == saveLotRequestDto.UserId)
                    ?? throw new EntityNotFoundException($"No user with Id '{saveLotRequestDto.UserId}'");
 
         var lot = await _unitOfWork.Lots.GetByIdAsync(saveLotRequestDto.LotId)
             ?? throw new EntityNotFoundException($"No lot with Id {saveLotRequestDto.LotId}");
         
-        user.Lots.Add(lot);
+        await _unitOfWork.Saved.AddAsync(new Saved { User = user, Lot = lot });
 
         await _unitOfWork.CommitAsync();
     }
