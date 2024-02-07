@@ -1,4 +1,4 @@
-namespace Betabid.Features.Exceptions;
+namespace Betabid.Application.Exceptions;
 
 public class EntityNotFoundException : Exception
 {

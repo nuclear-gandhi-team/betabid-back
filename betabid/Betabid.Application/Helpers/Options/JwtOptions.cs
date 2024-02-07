@@ -1,4 +1,4 @@
-namespace Betabid.Features.Common.Options;
+namespace Betabid.Application.Helpers.Options;
 
 public class JwtOptions
 {

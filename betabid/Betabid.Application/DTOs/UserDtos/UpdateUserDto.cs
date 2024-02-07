@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Betabid.Features.UserFeatures;
+namespace Betabid.Application.DTOs.UserDtos;
 
 public record UpdateUserDto
 {
@@ -9,5 +9,6 @@ public record UpdateUserDto
     
     public string? NewName { get; set; }
 
+    [EmailAddress(ErrorMessage = "Invalid Email Address")]
     public string? NewEmail { get; set; }
 }

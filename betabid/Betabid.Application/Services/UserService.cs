@@ -1,38 +1,43 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Authentication;
+using System.Security.Claims;
+using System.Text;
 using AutoMapper;
+using Betabid.Application.DTOs.UserDtos;
+using Betabid.Application.Exceptions;
+using Betabid.Application.Helpers.Options;
+using Betabid.Application.Interfaces.Repositories;
 using Betabid.Domain.Entities;
-using Betabid.Features.Common.Options;
-using Betabid.Features.Exceptions;
 using Betabid.Features.Interfaces;
-using Betabid.Features.UserFeatures;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Betabid.Application.Services;
 
 public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     private readonly JwtOptions _jwtOptions;
     
-    public UserService(
-        IUnitOfWork unitOfWork,
-        UserManager<User> userManager,
-        IMapper mapper,
-        IOptions<JwtOptions> jwtOptions)
+    public UserService(UserManager<User> userManager, IMapper mapper, IOptions<JwtOptions> jwtOptions)
     {
-        _unitOfWork = unitOfWork;
         _userManager = userManager;
         _mapper = mapper;
         _jwtOptions = jwtOptions.Value;
     }
     
-    public Task<LoginResponseDto> LoginUserAsync(LoginUserDto loginUserDto)
+    public async Task<LoginResponseDto> LoginUserAsync(LoginUserDto loginUserDto)
     {
-        throw new NotImplementedException();
+        var userExists = await _userManager.FindByNameAsync(loginUserDto.Login)
+                         ?? throw new ArgumentException("User doest exists");
+
+        return await _userManager.CheckPasswordAsync(userExists, loginUserDto.Password)
+            ? new LoginResponseDto { Token =  GenerateJwtAsync(userExists) }
+            : throw new AuthenticationException("Wrong password");
     }
 
     public async Task RegisterUserAsync(RegisterUserDto registerUserDto)
@@ -80,11 +85,14 @@ public class UserService : IUserService
         if (updateUserDto.NewName is not null)
         {
             user.Name = updateUserDto.NewName;
+            user.UserName = updateUserDto.NewName;
+            user.NormalizedUserName = updateUserDto.NewName.ToUpperInvariant();
         }
 
         if (updateUserDto.NewEmail is not null)
         {
-            user.Name = updateUserDto.NewEmail;
+            user.Email = updateUserDto.NewEmail;
+            user.NormalizedUserName = updateUserDto.NewEmail.ToUpperInvariant();
         }
 
         var updateResult = await _userManager.UpdateAsync(user);
@@ -122,4 +130,28 @@ public class UserService : IUserService
             throw new UserUpdateException($"Error adding new password for user Id '{user.Id}'");
         }
     }
+    
+    private string GenerateJwtAsync(User user)
+    {
+        var authClaims = new List<Claim>
+        {
+            new(ClaimTypes.Name, user.Name),
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(JwtRegisteredClaimNames.Sub, user.UserName!),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        };
+
+        var authSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.Secret));
+
+        var token = new JwtSecurityToken(
+            issuer: _jwtOptions.Issuer,
+            audience: _jwtOptions.Audience,
+            expires: DateTime.UtcNow.AddHours(3),
+            claims: authClaims,
+            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256));
+
+        string tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
+        return $"Bearer {tokenValue}";
+    }
+
 }

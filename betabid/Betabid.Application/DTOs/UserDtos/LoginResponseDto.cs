@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Betabid.Features.UserFeatures;
+namespace Betabid.Application.DTOs.UserDtos;
 
 public record LoginResponseDto
 {

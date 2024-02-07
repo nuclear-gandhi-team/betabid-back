@@ -1,4 +1,4 @@
-using Betabid.Features.UserFeatures;
+using Betabid.Application.DTOs.UserDtos;
 
 namespace Betabid.Features.Interfaces;
 

@@ -8,12 +8,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Betabid.Domain\Betabid.Domain.csproj" />
-      <ProjectReference Include="..\Betabid.Features\Betabid.Features.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="AutoMapper" Version="13.0.0" />
       <PackageReference Include="FluentValidation" Version="11.9.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.15" />
     </ItemGroup>
 
 </Project>
