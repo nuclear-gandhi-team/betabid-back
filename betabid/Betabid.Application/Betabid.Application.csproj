@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Betabid.Domain\Betabid.Domain.csproj" />
+      <ProjectReference Include="..\Betabid.Features\Betabid.Features.csproj" />
     </ItemGroup>
 
 </Project>
