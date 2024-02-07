@@ -1,6 +1,7 @@
 using AutoMapper;
 using Betabid.Application.DTOs.BetDtos;
 using Betabid.Application.DTOs.LotsDTOs;
+using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Helpers;
 using Betabid.Domain.Entities;
 
@@ -37,5 +38,17 @@ public class ApplicationProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Name))
             .ForMember(dest => dest.Time, opt => opt.MapFrom(src => src.Time));
+        
+        CreateMap<User, GetFullUserDto>()
+            .ForMember(dest => dest.Login,
+                opt => opt.MapFrom(src => src.Name))
+            .ReverseMap();
+        CreateMap<RegisterUserDto, User>()
+            .ForMember(dest => dest.Name,
+                opt =>opt.MapFrom(src => src.Login))
+            .ForMember(dest => dest.UserName,
+                opt => opt.MapFrom(src => src.Login))
+            .ReverseMap();
+
     }
 }
