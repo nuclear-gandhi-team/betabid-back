@@ -1,5 +1,10 @@
+using Betabid.Application.Helpers;
+using Betabid.Application.Profiles;
+using Betabid.Application.Services;
+using Betabid.Application.Validators;
 using Betabid.Domain.Entities;
 using Betabid.Persistence.Context;
+using Betabid.Persistence.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddValidators();
+builder.Services.AddScopedServices();
+builder.Services.AddScopedRepositories();
+builder.Services.AddScoped<ITimeProvider, TimeProvider>();
+builder.Services.AddAutoMapper(typeof(ApplicationProfile));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
