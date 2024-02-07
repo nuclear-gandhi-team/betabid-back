@@ -1,5 +1,5 @@
 using Betabid.Application.DTOs.UserDtos;
-using Betabid.Features.Interfaces;
+using Betabid.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace betabid.Controllers;

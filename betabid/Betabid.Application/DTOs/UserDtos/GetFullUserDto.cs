@@ -16,7 +16,7 @@ public record GetFullUserDto
     public string Email { get; set; } = default!;
     
     [Required]
-    public decimal Balance { get; set; } = default!;
+    public decimal Balance { get; set; }
 
     public IList<Lot> SavedLots { get; set; } = new List<Lot>();
     

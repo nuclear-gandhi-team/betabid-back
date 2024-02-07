@@ -6,7 +6,7 @@ public class BetDto
 
     public decimal Amount { get; set; }
 
-    public string Username { get; set; }
+    public string Username { get; set; } = default!;
     
     public DateTime Time { get; set; }
 }

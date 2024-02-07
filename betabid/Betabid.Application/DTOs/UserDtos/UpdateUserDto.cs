@@ -10,5 +10,6 @@ public record UpdateUserDto
     public string? NewName { get; set; }
 
     [EmailAddress(ErrorMessage = "Invalid Email Address")]
+    [RegularExpression("^\\S+@\\S+\\.\\S+$", ErrorMessage = "Invalid Email Address")]
     public string? NewEmail { get; set; }
 }

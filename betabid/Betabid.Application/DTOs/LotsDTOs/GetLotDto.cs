@@ -6,15 +6,15 @@ public class GetLotDto
 {
     public int Id { get; set; }
 
-    public string Title { get; set; }
+    public string Title { get; set; } = default!;
 
-    public IEnumerable<string> Images { get; set; }
+    public IEnumerable<string> Images { get; set; } = default!;
 
-    public IEnumerable<string> Tags { get; set; }
+    public IEnumerable<string> Tags { get; set; } = default!;
 
     public string Status { get; set; } = "Pending";
 
-    public string Description { get; set; }
+    public string Description { get; set; } = default!;
 
     public DateTime DateStarted { get; set; }
 
@@ -28,9 +28,9 @@ public class GetLotDto
 
     public decimal MinBetStep { get; set; }
     
-    public string OwnerUsername { get; set; }
+    public string OwnerUsername { get; set; } = default!;
 
-    public IEnumerable<BetDto> BidHistory { get; set; }
+    public IEnumerable<BetDto> BidHistory { get; set; } = default!;
 
     public bool IsSaved { get; set; }
 }

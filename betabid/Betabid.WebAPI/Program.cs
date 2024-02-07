@@ -5,7 +5,6 @@ using Betabid.Application.Services;
 using Betabid.Application.Validators;
 using Betabid.Domain.Entities;
 using betabid.Extensions;
-using Betabid.Features.Interfaces;
 using betabid.Middleware;
 using Betabid.Persistence.Context;
 using Betabid.Persistence.Repositories;
@@ -28,7 +27,6 @@ builder.Services.AddScopedRepositories();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
 
 builder.Services.AddScoped<ITimeProvider, TimeProvider>();
-builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 

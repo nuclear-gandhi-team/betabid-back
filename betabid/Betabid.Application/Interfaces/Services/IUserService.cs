@@ -1,6 +1,6 @@
 using Betabid.Application.DTOs.UserDtos;
 
-namespace Betabid.Features.Interfaces;
+namespace Betabid.Application.Interfaces.Services;
 
 public interface IUserService
 {
@@ -15,4 +15,6 @@ public interface IUserService
     Task UpdateUserDataAsync(UpdateUserDto updateUserDto);
 
     Task UpdateUserPasswordAsync(UpdateUserPasswordDto updateUserDto);
+
+    Task SaveLotAsync(SaveLotRequestDto saveLotRequestDto);
 }

@@ -7,8 +7,8 @@ using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Exceptions;
 using Betabid.Application.Helpers.Options;
 using Betabid.Application.Interfaces.Repositories;
+using Betabid.Application.Interfaces.Services;
 using Betabid.Domain.Entities;
-using Betabid.Features.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,14 +19,16 @@ namespace Betabid.Application.Services;
 public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     private readonly JwtOptions _jwtOptions;
     
-    public UserService(UserManager<User> userManager, IMapper mapper, IOptions<JwtOptions> jwtOptions)
+    public UserService(UserManager<User> userManager, IMapper mapper, IOptions<JwtOptions> jwtOptions, IUnitOfWork unitOfWork)
     {
         _userManager = userManager;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
         _jwtOptions = jwtOptions.Value;
     }
     
@@ -130,7 +132,22 @@ public class UserService : IUserService
             throw new UserUpdateException($"Error adding new password for user Id '{user.Id}'");
         }
     }
-    
+
+    public async Task SaveLotAsync(SaveLotRequestDto saveLotRequestDto)
+    {
+        var user = await _userManager.Users
+                       .Include(u => u.Lots)
+                       .FirstOrDefaultAsync(u => u.Id == saveLotRequestDto.UserId)
+                   ?? throw new EntityNotFoundException($"No user with Id '{saveLotRequestDto.UserId}'");
+
+        var lot = await _unitOfWork.Lots.GetByIdAsync(saveLotRequestDto.LotId)
+            ?? throw new EntityNotFoundException($"No lot with Id {saveLotRequestDto.LotId}");
+        
+        user.Lots.Add(lot);
+
+        await _unitOfWork.CommitAsync();
+    }
+
     private string GenerateJwtAsync(User user)
     {
         var authClaims = new List<Claim>
