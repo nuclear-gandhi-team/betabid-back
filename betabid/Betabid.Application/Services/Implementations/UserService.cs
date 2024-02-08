@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Betabid.Application.Services;
+namespace Betabid.Application.Services.Implementations;
 
 public class UserService : IUserService
 {

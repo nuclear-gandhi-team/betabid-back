@@ -18,7 +18,6 @@ public class AddLotValidator : AbstractValidator<AddLotDto>
         RuleFor(x => x.Deadline).NotEmpty().WithMessage("Deadline must be provided");
         RuleFor(x => x.BetStep).NotEmpty().GreaterThan(0).WithMessage("BetStep must be greater than 0");
         RuleFor(x => x.OwnerId).NotEmpty().WithMessage("OwnerId must be provided");
-        RuleFor(x => x.TagIds).NotEmpty().WithMessage("You must add at least one tag to a lot");
         RuleFor(x=>x.TagIds).Must(x => x.Count <= 2).WithMessage("You can add up to 2 tags to a lot");
     }
 }

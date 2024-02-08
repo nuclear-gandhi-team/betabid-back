@@ -10,7 +10,7 @@ public interface ILotService
     
     Task<IEnumerable<GetLotsDto>> GetAllLotsAsync(string userId);
     
-    Task<GetLotDto> GetLotByIdAsync(int id);
+    Task<GetLotDto> GetLotByIdAsync(int id, string userId);
     
     Task DeleteLotAsync(int id);
     

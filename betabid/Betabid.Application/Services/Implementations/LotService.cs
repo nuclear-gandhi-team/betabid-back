@@ -1,4 +1,3 @@
-using System.Data;
 using AutoMapper;
 using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.Exceptions;
@@ -7,6 +6,7 @@ using Betabid.Application.Interfaces.Repositories;
 using Betabid.Application.Services.Interfaces;
 using Betabid.Domain.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Betabid.Application.Services.Implementations;
 
@@ -43,7 +43,7 @@ public class LotService : ILotService
 
     public async Task<IEnumerable<GetLotsDto>> GetAllLotsAsync(string userId)
     {
-        var lots = await _unitOfWork.Lots.GetAllAsync();
+        var lots = (await _unitOfWork.Lots.GetAllAsync()).ToList();
 
         if (!lots.Any())
         {
@@ -58,8 +58,11 @@ public class LotService : ILotService
             item.Dto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(item.Dto.Id, userId);
             
             var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(item.Dto.Id);
-            item.Dto.Tags = tags.Tags.Select(t => t.Name).ToList();
-            
+
+            item.Dto.Tags = item.Dto.Tags.IsNullOrEmpty() 
+                ? new List<string> { "Other" }
+                : tags.Tags.Select(t => t.Name).ToList();
+
             item.Dto.Status = GetStatus(item.Lot);
             
             var picture = await _unitOfWork.Pictures.GetPictureByLotIdAsync(item.Dto.Id);
@@ -69,7 +72,7 @@ public class LotService : ILotService
         return lotsDto;
     }
 
-    public async Task<GetLotDto> GetLotByIdAsync(int id)
+    public async Task<GetLotDto> GetLotByIdAsync(int id, string userId)
     {
         var lot = await _unitOfWork.Lots.GetByIdAsync(id);
         if (lot == null)
@@ -79,14 +82,16 @@ public class LotService : ILotService
 
         var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(id);
         lot.Tags = tags.Tags;
-        var lotDto = _mapper.Map<GetLotDto>(lot);
+        var lotDto = _mapper.Map<GetLotDto>(lot) ?? throw new NullReferenceException("Error mapping.");
         lotDto.Status = GetStatus(lot); 
         
         var pictures = await _unitOfWork.Pictures.GetPicturesByLotIdAsync(id);
         
-        lotDto.Images = pictures.Select(pic => Convert.ToBase64String(pic.Data)).ToList();
+        lotDto.Images = pictures.Select(pic => 
+                Convert.ToBase64String(pic.Data ?? throw new NullReferenceException("Image is null.")))
+                .ToList();
         
-        lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(id, lot.OwnerId);
+        lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(id, userId);
         
         if (lot.Bets != null && lot.Bets.Any())
         {
@@ -196,7 +201,7 @@ public class LotService : ILotService
         return picturesList;
     }
     
-    private void ValidateAddingNewLot(AddLotDto newLot, IList<IFormFile> pictures)
+    private static void ValidateAddingNewLot(AddLotDto newLot, ICollection<IFormFile> pictures)
     {
         if(pictures.Count == 0)
         {

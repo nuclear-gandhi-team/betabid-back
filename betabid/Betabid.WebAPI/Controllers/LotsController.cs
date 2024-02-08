@@ -38,10 +38,10 @@ public class LotsController : ControllerBase
         return Ok();
     }
     
-    [HttpGet ("get/{id}")]
-    public async Task<IActionResult> GetLotByIdAsync(int id)
+    [HttpGet ("get/{id:int}/{userId}")]
+    public async Task<IActionResult> GetLotByIdAsync(int id, string userId)
     {
-        var lot = await _lotService.GetLotByIdAsync(id);
+        var lot = await _lotService.GetLotByIdAsync(id, userId);
         return Ok(lot);
     }
     
