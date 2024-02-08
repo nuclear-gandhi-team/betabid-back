@@ -1,11 +1,16 @@
 using AutoMapper;
+using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.Exceptions;
+using Betabid.Application.Filtering;
+using Betabid.Application.Filtering.Lots;
 using Betabid.Application.Helpers;
 using Betabid.Application.Interfaces.Repositories;
 using Betabid.Application.Services.Interfaces;
 using Betabid.Domain.Entities;
+using LinqKit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Betabid.Application.Services.Implementations;
@@ -41,35 +46,59 @@ public class LotService : ILotService
         
     }
 
-    public async Task<IEnumerable<GetLotsDto>> GetAllLotsAsync(string userId)
+    public async Task<LotsWithPagination> GetAllLotsAsync(FilteringOptionsDto filteringOptionsDto, string userId)
     {
-        var lots = (await _unitOfWork.Lots.GetAllAsync()).ToList();
-
-        if (!lots.Any())
+        var predicate = PredicateBuilder.New<Lot>(true);
+        var specifications = new List<IFilteringCriteria<Lot>>();
+        
+        if (filteringOptionsDto.Tags != null && filteringOptionsDto.Tags.Any())
         {
-            return new List<GetLotsDto>();
+            specifications.Add(new TagsFilteringCriteria(filteringOptionsDto.Tags));
         }
-        var lotsDto = _mapper.Map<IEnumerable<GetLotsDto>>(lots);
-
-        var lotsWithDto = lots.Zip(lotsDto, (lot, dto) => new { Lot = lot, Dto = dto });
-
-        foreach (var item in lotsWithDto)
+        if (filteringOptionsDto.Status != null)
         {
-            item.Dto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(item.Dto.Id, userId);
-            
-            var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(item.Dto.Id);
-
-            item.Dto.Tags = item.Dto.Tags.IsNullOrEmpty() 
-                ? new List<string> { "Other" }
-                : tags.Tags.Select(t => t.Name).ToList();
-
-            item.Dto.Status = GetStatus(item.Lot);
-            
-            var picture = await _unitOfWork.Pictures.GetPictureByLotIdAsync(item.Dto.Id);
-            item.Dto.Image = picture != null ? Convert.ToBase64String(picture.Data) : null;
+            specifications.Add(new LotStatusFilteringCriteria(filteringOptionsDto.Status.Value, _timeProvider));
         }
+        if (filteringOptionsDto.NameStartsWith != null)
+        {
+            specifications.Add(new LotNameFilteringCriteria(filteringOptionsDto.NameStartsWith));
+        }
+        predicate = specifications.Aggregate(predicate, (current, specification) => current.And(specification.Criteria));
 
-        return lotsDto;
+        var (filteredLots, totalCount) = await _unitOfWork.Lots.GetAllFilteredAsync(predicate, filteringOptionsDto);
+
+        if (!filteredLots.Any())
+        {
+         return new LotsWithPagination();
+        }
+    
+        var lotsDto = _mapper.Map<IEnumerable<GetLotsDto>>(filteredLots);
+
+        foreach (var lotDto in lotsDto)
+        {
+            var lot = filteredLots.FirstOrDefault(lot => lot.Id == lotDto.Id);
+            if(lot == null)
+            {
+                continue;
+            }
+
+            lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(lotDto.Id, userId);
+
+            lotDto.Status = GetStatus(lot);
+
+            var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(lotDto.Id);
+            lotDto.Tags = tags?.Tags?.Select(t => t.Name).ToList() ?? new List<string> { "Other" };
+            
+            var picture = await _unitOfWork.Pictures.GetPictureByLotIdAsync(lotDto.Id);
+            lotDto.Image = picture != null ? Convert.ToBase64String(picture.Data) : null;
+        }
+    
+        return new LotsWithPagination
+        {
+            Lots = lotsDto,
+            TotalPages = totalCount,
+            CurrentPage = filteringOptionsDto.Page ?? 1
+        };
     }
 
     public async Task<GetLotDto> GetLotByIdAsync(int id, string userId)

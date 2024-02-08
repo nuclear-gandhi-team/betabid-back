@@ -1,3 +1,4 @@
+using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.Services.Interfaces;
 using FluentValidation;
@@ -47,9 +48,9 @@ public class LotsController : ControllerBase
     
     //Authorize
     [HttpGet ("getall")]
-    public async Task<IActionResult> GetAllLotsAsync(string userId)
+    public async Task<IActionResult> GetAllLotsAsync([FromQuery] FilteringOptionsDto filterOptions, string userId)
     {
-        var lots = await _lotService.GetAllLotsAsync(userId);
+        var lots = await _lotService.GetAllLotsAsync(filterOptions, userId);
         return Ok(lots);
     }
     
