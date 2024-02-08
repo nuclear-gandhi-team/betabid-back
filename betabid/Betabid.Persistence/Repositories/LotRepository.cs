@@ -26,6 +26,7 @@ public class LotRepository : Repository<Lot>, ILotRepository
             .Include(lot => lot.Pictures)
             .Include(lot => lot.Tags)
             .Include(lot => lot.Bets)
-            .FirstOrDefaultAsync(lot => lot.Id == id);
+            .FirstOrDefaultAsync(lot => lot.Id == id)
+               ?? throw new InvalidOperationException();
     }
 }
