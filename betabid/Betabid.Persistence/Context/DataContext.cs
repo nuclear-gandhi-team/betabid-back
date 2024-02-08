@@ -40,5 +40,7 @@ public class DataContext : IdentityDbContext<User>
             .HasOne(ul => ul.Lot)
             .WithMany(l => l.SavedBy)
             .HasForeignKey(ul => ul.LotId);
+        
+        DbInitializer.SeedTags(builder);
     }
 }
