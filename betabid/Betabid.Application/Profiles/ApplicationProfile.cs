@@ -13,31 +13,35 @@ public class ApplicationProfile : Profile
     {
         CreateMap<Lot, GetLotsDto>()
             .ForMember(dto => dto.Title, opt => opt.MapFrom(lot => lot.Name))
-            .ForMember(dto => dto.Image, opt => opt.MapFrom(lot => lot.Pictures.FirstOrDefault()))
             .ForMember(dto => dto.Tags, opt => opt.MapFrom(lot => lot.Tags.Select(t => t.Name).ToList()))
             .ReverseMap();
 
         CreateMap<AddLotDto, Lot>()
             .ForMember(lot => lot.Tags, opt => opt.Ignore())
-            .ForMember(lot => lot.Pictures, opt => opt.Ignore())
             .ReverseMap();
 
         CreateMap<Lot, GetLotDto>()
-            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Pictures.Select(p => p.Data)))
             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(t => t.Name)))
-            .ForMember(dest => dest.OwnerUsername, opt => opt.MapFrom(src => src.Owner.Name))
+            .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.Owner.Name))
             .ForMember(dest => dest.BidHistory, opt => opt.MapFrom(src => src.Bets))
             .ForMember(dest => dest.IsSaved, opt => opt.Ignore())
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.CurrentPrice, opt => 
-                opt.MapFrom(src => src.Bets.Any() ? src.Bets.Max(b => b.Amount) : src.StartPrice));
+            .ForMember(dest => dest.CurrentPrice, opt =>
+                opt.MapFrom(src => src.Bets.Any() ? src.Bets.Max(b => b.Amount) : src.StartPrice))
+            .ForMember(dest => dest.MinBetStep, opt => opt.MapFrom(src => src.BetStep))
+            .ForMember(dest=>dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest=>dest.MinNextPrice, opt => opt.MapFrom(src => src.Bets.Any() ? src.Bets.Max(b => b.Amount) + src.BetStep : src.StartPrice + src.BetStep))
+            .ForMember(dest=>dest.ActiveBetsCount, opt => opt.MapFrom(src => src.Bets.Count))
+            .ForMember(dest=>dest.ActiveUsersCount, opt => opt.MapFrom(src => src.Bets.Select(b => b.UserId).Distinct().Count()))
+            .ReverseMap();
 
         CreateMap<Bet, BetDto>()
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Name))
-            .ForMember(dest => dest.Time, opt => opt.MapFrom(src => src.Time));
+            .ForMember(dest => dest.Time, opt => opt.MapFrom(src => src.Time))
+            .ForMember(dest=> dest.UserEmail, opt => opt.MapFrom(src => src.User.Email));
         
         CreateMap<User, GetFullUserDto>()
             .ForMember(dest => dest.Login,

@@ -42,6 +42,9 @@ public class ExceptionHandlerMiddleware
             HttpRequestException => StatusCodes.Status400BadRequest,
             AccessViolationException => StatusCodes.Status403Forbidden,
             UserUpdateException => StatusCodes.Status400BadRequest,
+            LotAlreadyStartedException => StatusCodes.Status400BadRequest,
+            LotAlreadySavedException => StatusCodes.Status400BadRequest,
+            LotHasBidsException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError,
         };
 

@@ -12,7 +12,7 @@ public class GetLotDto
 
     public IEnumerable<string> Tags { get; set; } = default!;
 
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; }
 
     public string Description { get; set; } = default!;
 
@@ -24,11 +24,15 @@ public class GetLotDto
 
     public decimal CurrentPrice { get; set; }
     
-    //public decimal SoldFor { get; set; }
+    public decimal MinNextPrice { get; set; }
+    
+    public int ActiveBetsCount { get; set; }
+    
+    public int ActiveUsersCount { get; set; }
 
     public decimal MinBetStep { get; set; }
     
-    public string OwnerUsername { get; set; } = default!;
+    public string OwnerName { get; set; } = default!;
 
     public IEnumerable<BetDto> BidHistory { get; set; } = default!;
 

@@ -7,7 +7,19 @@ namespace Betabid.Persistence.Repositories;
 
 public class PictureRepository : Repository<Picture>, IPictureRepository
 {
-    public PictureRepository(DataContext dbContext) : base(dbContext)
+    private readonly DataContext _context;
+    public PictureRepository(DataContext dbContext, DataContext context) : base(dbContext)
     {
+        _context = context;
+    }
+
+    public async Task<List<Picture>> GetPicturesByLotIdAsync(int lotId)
+    {
+        return await _context.Pictures.Where(p => p.LotId == lotId).ToListAsync();
+    }
+
+    public Task<Picture?> GetPictureByLotIdAsync(int lotId)
+    {
+        return _context.Pictures.FirstOrDefaultAsync(p => p.LotId == lotId);
     }
 }

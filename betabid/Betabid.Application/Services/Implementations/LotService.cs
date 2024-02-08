@@ -1,9 +1,12 @@
+using System.Data;
 using AutoMapper;
 using Betabid.Application.DTOs.LotsDTOs;
+using Betabid.Application.Exceptions;
 using Betabid.Application.Helpers;
 using Betabid.Application.Interfaces.Repositories;
 using Betabid.Application.Services.Interfaces;
 using Betabid.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 
 namespace Betabid.Application.Services.Implementations;
 
@@ -20,60 +23,18 @@ public class LotService : ILotService
         _timeProvider = timeProvider;
     }
 
-    public async Task<AddLotDto> CreateNewLotAsync(AddLotDto newLot)
+    public async Task<AddLotDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures)
     {
-        if (newLot == null)
-        {
-            throw new ArgumentException("new Lot cannot be null", nameof(newLot));
-        }
-        if (newLot.TagIds.Count > 2)
-        {
-            throw new Exception("You can only add 2 tags to a lot");
-        }
+        ValidateAddingNewLot(newLot, pictures);
         var lot = _mapper.Map<Lot>(newLot);
         
-        if (newLot.TagIds.Any())
-        {
-            lot!.Tags = new List<Tag>();
-        }
-        if( newLot.Pictures.Any())
-        {
-            lot!.Pictures = new List<Picture>();
-        }
+        await HandleTagsAsync(newLot, lot);
         
-        foreach (var tagId in newLot.TagIds)
-        {
-            var tag = await _unitOfWork.Tags.GetByIdAsync(tagId);
-            if (tag != null)
-            {
-                lot.Tags.Add(tag);
-            }
-            else throw new Exception($"Tag with ID {tagId} not found");
-        }
-        //Todo: PICTURES???
-        if (newLot.Pictures.Any())
-        {
-            foreach (var formFile in newLot.Pictures)
-            {
-                if (formFile.Length > 0)
-                {
-                    using var ms = new MemoryStream();
-                    await formFile.CopyToAsync(ms);
-                    var fileBytes = ms.ToArray();
-       
-                    Picture picture = new Picture 
-                    { 
-                        Data = fileBytes,
-                        Lot = lot,
-                        LotId = lot.Id
-                    };
-                    lot.Pictures.Add(picture);
-                }
-            }
-        }
+        lot.Pictures = await HandlePicturesAsync(pictures, lot);
 
         await _unitOfWork.Lots.AddAsync(lot);
         await _unitOfWork.CommitAsync();
+        
         var lotDto = _mapper.Map<AddLotDto>(lot);
 
         return lotDto;
@@ -95,9 +56,14 @@ public class LotService : ILotService
         foreach (var item in lotsWithDto)
         {
             item.Dto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(item.Dto.Id, userId);
+            
             var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(item.Dto.Id);
             item.Dto.Tags = tags.Tags.Select(t => t.Name).ToList();
-            item.Dto.Status = GetStatus(item.Lot); 
+            
+            item.Dto.Status = GetStatus(item.Lot);
+            
+            var picture = await _unitOfWork.Pictures.GetPictureByLotIdAsync(item.Dto.Id);
+            item.Dto.Image = picture != null ? Convert.ToBase64String(picture.Data) : null;
         }
 
         return lotsDto;
@@ -108,19 +74,24 @@ public class LotService : ILotService
         var lot = await _unitOfWork.Lots.GetByIdAsync(id);
         if (lot == null)
         {
-            throw new Exception($"Lot with ID {id} not found");
+            throw new EntityNotFoundException($"Lot with ID {id} not found");
         }
 
         var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(id);
         lot.Tags = tags.Tags;
         var lotDto = _mapper.Map<GetLotDto>(lot);
         lotDto.Status = GetStatus(lot); 
+        
+        var pictures = await _unitOfWork.Pictures.GetPicturesByLotIdAsync(id);
+        
+        lotDto.Images = pictures.Select(pic => Convert.ToBase64String(pic.Data)).ToList();
+        
         lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(id, lot.OwnerId);
+        
         if (lot.Bets != null && lot.Bets.Any())
         {
             lotDto.CurrentPrice = lot.Bets.Max(b => b.Amount);  
         }
-        // Todo : check bids
         return lotDto;
     }
 
@@ -129,16 +100,16 @@ public class LotService : ILotService
         var lot = await _unitOfWork.Lots.GetByIdAsync(id);
         if (lot == null)
         {
-            throw new Exception($"Lot with ID {id} not found");
+            throw new EntityNotFoundException($"Lot with ID {id} not found");
         }
         if (lot.DateStarted < _timeProvider.Now)
         {
-            throw new Exception("You cannot delete a lot that has already started");
+            throw new LotAlreadyStartedException("You cannot delete a lot that has already started");
         }
         var hasBids = await _unitOfWork.Bets.AnyAsync(b => b.LotId == id);
         if (hasBids)
         {
-            throw new Exception("Cannot delete a lot that has bids.");
+            throw new LotHasBidsException("Cannot delete a lot that has bids.");
         }
 
         await _unitOfWork.Lots.DeleteAsync(lot);
@@ -150,12 +121,12 @@ public class LotService : ILotService
         var lot = await _unitOfWork.Lots.GetByIdAsync(lotId);
         if (lot == null)
         {
-            throw new Exception($"Lot with ID {lotId} not found");
+            throw new EntityNotFoundException($"Lot with ID {lotId} not found");
         }
         var isAlreadySaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(lotId, userId);
 
         if(isAlreadySaved)
-            throw new Exception("The lot is already saved by the user.");
+            throw new LotAlreadySavedException();
 
         var saved = new Saved
         {
@@ -181,4 +152,60 @@ public class LotService : ILotService
         return "Ended";
     } 
     
+    private async Task HandleTagsAsync(AddLotDto newLot, Lot lot)
+    {
+        if (!newLot.TagIds.Any())
+        {
+            return;
+        }
+        lot.Tags = new List<Tag>();
+        foreach (var tagId in newLot.TagIds)
+        {
+            var tag = await _unitOfWork.Tags.GetByIdAsync(tagId);
+            if (tag != null)
+            {
+                lot.Tags.Add(tag);
+            }
+            else throw new EntityNotFoundException($"Tag with ID {tagId} not found");
+        }
+    }
+
+    private async Task<List<Picture>> HandlePicturesAsync(IList<IFormFile> pictures, Lot lot)
+    {
+        var picturesList = new List<Picture>();
+
+        foreach (var formFile in pictures)
+        {
+            if (formFile.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await formFile.CopyToAsync(ms);
+                var fileBytes = ms.ToArray();
+
+                Picture picture = new Picture
+                {
+                    Data = fileBytes,
+                    Lot = lot,
+                    LotId = lot.Id
+                };
+
+                picturesList.Add(picture);
+            }
+        }
+
+        return picturesList;
+    }
+    
+    private void ValidateAddingNewLot(AddLotDto newLot, IList<IFormFile> pictures)
+    {
+        if(pictures.Count == 0)
+        {
+            throw new ArgumentException("You must add at least one picture");
+        }
+    
+        if (newLot == null)
+        {
+            throw new ArgumentException("new Lot cannot be null", nameof(newLot));
+        }
+    }
 }

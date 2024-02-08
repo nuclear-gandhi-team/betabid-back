@@ -10,7 +10,7 @@ public class GetLotsDto
     
     public decimal CurrentPrice { get; set; }
     
-    //public decimal SoldFor { get; set; }
+    public string Description { get; set; } = default!;
     
     public List<string> Tags { get; set; } = new();
     

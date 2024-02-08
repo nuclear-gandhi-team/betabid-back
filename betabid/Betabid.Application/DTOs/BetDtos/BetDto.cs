@@ -9,4 +9,6 @@ public class BetDto
     public string Username { get; set; } = default!;
     
     public DateTime Time { get; set; }
+    
+    public string UserEmail { get; set; } = default!;
 }

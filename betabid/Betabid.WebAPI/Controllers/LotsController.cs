@@ -19,15 +19,15 @@ public class LotsController : ControllerBase
     }
     
     [HttpPost ("create")]
-    public async Task<IActionResult> CreateNewLotAsync([FromForm] AddLotDto newLot)
+    public async Task<IActionResult> CreateNewLotAsync([FromForm] AddLotDto newLotDto, [FromForm] IList<IFormFile> pictures)
     {
-        var validationResult = await _lotValidator.ValidateAsync(newLot);
+        var validationResult = await _lotValidator.ValidateAsync(newLotDto);
 
         if (!validationResult.IsValid)
         {
             return BadRequest(validationResult.Errors);
         }
-        var createdLot = await _lotService.CreateNewLotAsync(newLot);
+        var createdLot = await _lotService.CreateNewLotAsync(newLotDto, pictures);
         return Ok(createdLot);
     }
     
@@ -45,6 +45,7 @@ public class LotsController : ControllerBase
         return Ok(lot);
     }
     
+    //Authorize
     [HttpGet ("getall")]
     public async Task<IActionResult> GetAllLotsAsync(string userId)
     {
@@ -52,6 +53,7 @@ public class LotsController : ControllerBase
         return Ok(lots);
     }
     
+    //Authorize
     [HttpPost ("save/{lotId}")]
     public async Task<IActionResult> SaveLotAsync(int lotId, string userId)
     {

@@ -19,6 +19,4 @@ public class AddLotDto
     public string OwnerId { get; set; } = null!;
 
     public List<int> TagIds { get; set; } = new();
-
-    public List<IFormFile> Pictures { get; set; } = new();
 }
