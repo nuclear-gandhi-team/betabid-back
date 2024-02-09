@@ -70,4 +70,11 @@ public class LotsController : ControllerBase
         return Ok(tags);
     }
 
+    [HttpGet("statuses")]
+    public IActionResult GetAllStatuses()
+    {
+        var statuses = _lotService.GetAllStatuses();
+
+        return Ok(statuses);
+    }
 }

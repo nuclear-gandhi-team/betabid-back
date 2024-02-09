@@ -1,5 +1,6 @@
 using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
+using Betabid.Application.DTOs.StatusesDtos;
 using Betabid.Application.DTOs.TagsDtos;
 using Microsoft.AspNetCore.Http;
 
@@ -16,4 +17,6 @@ public interface ILotService
     Task DeleteLotAsync(int id, string userId);
 
     Task<IList<GetTagDto>> GetAllTagsAsync();
+    
+    IList<GetStatusDto> GetAllStatuses();
 }
