@@ -38,7 +38,7 @@ public class ApplicationProfile : Profile
             .ForMember(dest=>dest.ActiveUsersCount, opt => opt.MapFrom(src => src.Bets.Select(b => b.UserId).Distinct().Count()))
             .ReverseMap();
 
-        CreateMap<Bet, BetDto>()
+        CreateMap<Bet, GetBetDto>()
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Name))

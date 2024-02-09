@@ -1,3 +1,4 @@
+using Betabid.Application.DTOs.BetDtos;
 using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Services.Interfaces;
@@ -97,5 +98,20 @@ public class UsersController : ControllerBase
         var lots = await _userService.GetUserLotsAsync(userId, filteringOptionsDto);
 
         return Ok(lots);
+    }
+    
+    [HttpPost]
+    [Route("bet")]
+    public async Task<IActionResult> BetAsync([FromBody] MakeBetDto makeBetDto)
+    {
+        var userId = await this.GetUserIdFromJwtAsync();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+        
+        await _userService.BetAsync(userId, makeBetDto);
+
+        return Ok();
     }
 }

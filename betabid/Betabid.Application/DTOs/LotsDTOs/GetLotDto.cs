@@ -34,7 +34,7 @@ public class GetLotDto
     
     public string OwnerName { get; set; } = default!;
 
-    public IEnumerable<BetDto> BidHistory { get; set; } = default!;
+    public IEnumerable<GetBetDto> BidHistory { get; set; } = default!;
 
     public bool IsSaved { get; set; }
 }

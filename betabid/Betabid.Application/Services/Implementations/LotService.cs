@@ -39,16 +39,16 @@ public class LotService : ILotService
         ValidateAddingNewLot(newLot, pictures);
         var lot = _mapper.Map<Lot>(newLot);
         
-        await HandleTagsAsync(newLot, lot);
+        await HandleTagsAsync(newLot, lot!);
         
-        lot.Pictures = await HandlePicturesAsync(pictures, lot);
+        lot!.Pictures = await HandlePicturesAsync(pictures, lot);
 
         await _unitOfWork.Lots.AddAsync(lot);
         await _unitOfWork.CommitAsync();
         
         var lotDto = _mapper.Map<AddLotDto>(lot);
 
-        return lotDto;
+        return lotDto!;
         
     }
 
@@ -78,7 +78,7 @@ public class LotService : ILotService
             return new LotsWithPagination();
         }
     
-        var lotsDto = _mapper.Map<IEnumerable<GetLotCardDto>>(filteredLots);
+        var lotsDto = _mapper.Map<IEnumerable<GetLotCardDto>>(filteredLots)!.ToList();
 
         foreach (var lotDto in lotsDto)
         {

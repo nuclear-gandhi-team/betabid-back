@@ -1,6 +1,6 @@
 namespace Betabid.Application.DTOs.BetDtos;
 
-public class BetDto
+public class GetBetDto
 {
     public int Id { get; set; }
 

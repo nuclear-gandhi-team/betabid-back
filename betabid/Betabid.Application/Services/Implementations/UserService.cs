@@ -3,6 +3,7 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using Betabid.Application.DTOs.BetDtos;
 using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.DTOs.UserDtos;
@@ -200,7 +201,7 @@ public class UserService : IUserService
             return new LotsWithPagination();
         }
     
-        var lotsDto = _mapper.Map<IEnumerable<GetLotCardDto>>(filteredLots);
+        var lotsDto = _mapper.Map<IEnumerable<GetLotCardDto>>(filteredLots)!.ToList();
 
         foreach (var lotDto in lotsDto)
         {
@@ -234,6 +235,51 @@ public class UserService : IUserService
             TotalPages = totalCount,
             CurrentPage = filteringOptionsDto.Page ?? 1
         };
+    }
+
+    public async Task BetAsync(string userId, MakeBetDto makeBetDto)
+    {
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new EntityNotFoundException($"No user with Id '{userId}'");
+
+        if (user.Balance < makeBetDto.Amount)
+        {
+            throw new InsufficientFundsException($"Not enough money to bet ${makeBetDto.Amount}");
+        }
+        
+        var lot = await _unitOfWork.Lots.GetByIdWithBetsAsync(makeBetDto.LotId)
+            ?? throw new EntityNotFoundException($"No lot with Id '{makeBetDto.LotId}'");
+
+        if (makeBetDto.Amount < lot.BetStep)
+        {
+            throw new InvalidBetStepException($"Your bet must be at least {lot.BetStep} greater than last bet.");
+        }
+
+        if (lot.DateStarted > _timeProvider.Now)
+        {
+            throw new LotDateException("Bids for this lot is not started yet.");
+        }
+        if(lot.Deadline < _timeProvider.Now)
+        {
+            throw new LotDateException("Bids for this lot already closed.");
+        }
+
+        lot.Bets.Add(new Bet
+        {
+            Amount = makeBetDto.Amount,
+            Time = _timeProvider.Now,
+            UserId = userId,
+            LotId = makeBetDto.LotId,
+        });
+
+        user.Balance -= makeBetDto.Amount;
+
+        if (lot.Bets.Count >= 2)
+        {
+            lot.Bets[^2].User.Balance += lot.Bets[^2].Amount;
+        }
+
+        await _unitOfWork.CommitAsync();
     }
 
     private string GenerateJwtAsync(User user)

@@ -1,3 +1,4 @@
+using Betabid.Application.DTOs.BetDtos;
 using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.DTOs.UserDtos;
@@ -21,4 +22,6 @@ public interface IUserService
     Task SaveLotAsync(SaveLotRequestDto saveLotRequestDto);
     
     Task<LotsWithPagination> GetUserLotsAsync(string userId, FilteringOptionsDto filteringOptionsDto);
+
+    Task BetAsync(string userId, MakeBetDto makeBetDto);
 }
