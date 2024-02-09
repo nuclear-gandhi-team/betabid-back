@@ -14,6 +14,7 @@ public class ApplicationProfile : Profile
         CreateMap<Lot, GetLotsDto>()
             .ForMember(dto => dto.Title, opt => opt.MapFrom(lot => lot.Name))
             .ForMember(dto => dto.Tags, opt => opt.MapFrom(lot => lot.Tags.Select(t => t.Name).ToList()))
+            .ForMember(dest=>dest.CurrentPrice, opt => opt.MapFrom(src => src.Bets.Any() ? src.Bets.Max(b => b.Amount) : src.StartPrice))
             .ReverseMap();
 
         CreateMap<AddLotDto, Lot>()

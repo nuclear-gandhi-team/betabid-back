@@ -1,6 +1,9 @@
+using System.Linq.Expressions;
+using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.Interfaces.Repositories;
 using Betabid.Domain.Entities;
 using Betabid.Persistence.Context;
+using Betabid.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Betabid.Persistence.Repositories;
@@ -28,5 +31,21 @@ public class LotRepository : Repository<Lot>, ILotRepository
             .Include(lot => lot.Bets)
             .FirstOrDefaultAsync(lot => lot.Id == id)
                ?? throw new InvalidOperationException();
+    }
+
+    public async Task<(IEnumerable<Lot> lots, int TotalPages)> GetAllFilteredAsync(
+        Expression<Func<Lot, bool>> predicate, FilteringOptionsDto filterOptions)
+    {
+        var lots = _context.Lots
+            .Include(lot => lot.Bets)
+            .Where(predicate);
+
+        if (filterOptions.PriceOrder != null)
+        {
+            lots = await lots.GetSorted(filterOptions);
+        }
+
+        var pagedLots = lots.GetPaged(filterOptions);
+        return (pagedLots.Result.Items, pagedLots.Result.TotalPages);
     }
 }
