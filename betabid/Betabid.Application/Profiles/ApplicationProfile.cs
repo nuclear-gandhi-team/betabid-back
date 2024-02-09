@@ -1,6 +1,7 @@
 using AutoMapper;
 using Betabid.Application.DTOs.BetDtos;
 using Betabid.Application.DTOs.LotsDTOs;
+using Betabid.Application.DTOs.TagsDtos;
 using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Helpers;
 using Betabid.Domain.Entities;
@@ -55,5 +56,6 @@ public class ApplicationProfile : Profile
                 opt => opt.MapFrom(src => src.Login))
             .ReverseMap();
 
+        CreateMap<Tag, GetTagDto>().ReverseMap();
     }
 }

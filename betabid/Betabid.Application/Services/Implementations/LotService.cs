@@ -2,6 +2,7 @@ using System.Security.Authentication;
 using AutoMapper;
 using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
+using Betabid.Application.DTOs.TagsDtos;
 using Betabid.Application.Exceptions;
 using Betabid.Application.Filtering;
 using Betabid.Application.Filtering.Lots;
@@ -173,6 +174,14 @@ public class LotService : ILotService
 
         await _unitOfWork.Lots.DeleteAsync(lot);
         await _unitOfWork.CommitAsync();
+    }
+
+    public async Task<IList<GetTagDto>> GetAllTagsAsync()
+    {
+        var tags = await _unitOfWork.Tags.GetAllAsync();
+
+        return _mapper.Map<IList<GetTagDto>>(tags)
+            ?? new List<GetTagDto>(); // TEST!!!
     }
 
     private string GetStatus(Lot lot)

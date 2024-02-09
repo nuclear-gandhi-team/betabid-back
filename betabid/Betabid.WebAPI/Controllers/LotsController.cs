@@ -61,4 +61,13 @@ public class LotsController : ControllerBase
         var lots = await _lotService.GetAllLotsAsync(filterOptions, await this.GetUserIdFromJwtAsync());
         return Ok(lots);
     }
+
+    [HttpGet("tags")]
+    public async Task<IActionResult> GetAllTagsAsync()
+    {
+        var tags = await _lotService.GetAllTagsAsync();
+
+        return Ok(tags);
+    }
+
 }
