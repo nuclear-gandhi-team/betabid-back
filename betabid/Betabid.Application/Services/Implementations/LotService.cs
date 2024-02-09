@@ -8,10 +8,9 @@ using Betabid.Application.Helpers;
 using Betabid.Application.Interfaces.Repositories;
 using Betabid.Application.Services.Interfaces;
 using Betabid.Domain.Entities;
+using Betabid.Domain.Enums;
 using LinqKit;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Betabid.Application.Services.Implementations;
 
@@ -77,7 +76,7 @@ public class LotService : ILotService
         foreach (var lotDto in lotsDto)
         {
             var lot = filteredLots.FirstOrDefault(lot => lot.Id == lotDto.Id);
-            if(lot == null)
+            if (lot == null)
             {
                 continue;
             }
@@ -88,7 +87,7 @@ public class LotService : ILotService
 
             var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(lotDto.Id);
             lotDto.Tags = tags?.Tags?.Select(t => t.Name).ToList() ?? new List<string> { "Other" };
-            
+
             var picture = await _unitOfWork.Pictures.GetPictureByLotIdAsync(lotDto.Id);
             lotDto.Image = picture != null ? Convert.ToBase64String(picture.Data) : null;
         }
@@ -150,40 +149,17 @@ public class LotService : ILotService
         await _unitOfWork.CommitAsync();
     }
 
-    public async Task<bool> SaveLotAsync(int lotId, string userId)
-    {
-        var lot = await _unitOfWork.Lots.GetByIdAsync(lotId);
-        if (lot == null)
-        {
-            throw new EntityNotFoundException($"Lot with ID {lotId} not found");
-        }
-        var isAlreadySaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(lotId, userId);
-
-        if(isAlreadySaved)
-            throw new LotAlreadySavedException();
-
-        var saved = new Saved
-        {
-            UserId = userId,
-            LotId = lotId,
-        };
-
-        await _unitOfWork.Saved.AddAsync(saved);
-        await _unitOfWork.CommitAsync();
-        return true;
-    }
-
     private string GetStatus(Lot lot)
     {
         if (_timeProvider.Now < lot.DateStarted)
         {
-            return "Preparing";
+            return LotStatus.Preparing.ToString();
         }
         if (_timeProvider.Now >= lot.DateStarted && _timeProvider.Now < lot.Deadline)
         {
-            return "Active";
+            return LotStatus.Open.ToString();
         }
-        return "Ended";
+        return LotStatus.Finished.ToString();
     } 
     
     private async Task HandleTagsAsync(AddLotDto newLot, Lot lot)

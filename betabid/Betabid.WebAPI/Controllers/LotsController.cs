@@ -53,12 +53,4 @@ public class LotsController : ControllerBase
         var lots = await _lotService.GetAllLotsAsync(filterOptions, userId);
         return Ok(lots);
     }
-    
-    //Authorize
-    [HttpPost ("save/{lotId}")]
-    public async Task<IActionResult> SaveLotAsync(int lotId, string userId)
-    {
-        var isSaved = await _lotService.SaveLotAsync(lotId, userId);
-        return Ok(isSaved);
-    }
 }

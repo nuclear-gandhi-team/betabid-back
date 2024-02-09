@@ -14,6 +14,4 @@ public interface ILotService
     Task<GetLotDto> GetLotByIdAsync(int id, string userId);
     
     Task DeleteLotAsync(int id);
-    
-    Task<bool> SaveLotAsync(int lotId, string userId);
 }

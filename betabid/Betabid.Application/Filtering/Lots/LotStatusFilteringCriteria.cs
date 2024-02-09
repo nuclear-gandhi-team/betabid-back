@@ -22,6 +22,8 @@ public class LotStatusFilteringCriteria : IFilteringCriteria<Lot>
             lot.DateStarted <= _timeProvider.Now && lot.Deadline >= _timeProvider.Now,
         LotStatus.Preparing => lot =>
             lot.DateStarted > _timeProvider.Now,
+        LotStatus.Finished => lot =>
+            lot.Deadline < _timeProvider.Now,
         _ => throw new ArgumentException($"Invalid status: {_status}")
     };
 }
