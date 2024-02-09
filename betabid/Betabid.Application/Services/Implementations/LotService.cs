@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using AutoMapper;
 using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.LotsDTOs;
@@ -11,6 +12,8 @@ using Betabid.Domain.Entities;
 using Betabid.Domain.Enums;
 using LinqKit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Betabid.Application.Services.Implementations;
 
@@ -19,12 +22,14 @@ public class LotService : ILotService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ITimeProvider _timeProvider;
-    
-    public LotService(IUnitOfWork unitOfWork, IMapper mapper, ITimeProvider timeProvider)
+    private readonly UserManager<User> _userManager;
+
+    public LotService(IUnitOfWork unitOfWork, IMapper mapper, ITimeProvider timeProvider, UserManager<User> userManager)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _timeProvider = timeProvider;
+        _userManager = userManager;
     }
 
     public async Task<AddLotDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures)
@@ -45,7 +50,7 @@ public class LotService : ILotService
         
     }
 
-    public async Task<LotsWithPagination> GetAllLotsAsync(FilteringOptionsDto filteringOptionsDto, string userId)
+    public async Task<LotsWithPagination> GetAllLotsAsync(FilteringOptionsDto filteringOptionsDto, string? userId)
     {
         var predicate = PredicateBuilder.New<Lot>(true);
         var specifications = new List<IFilteringCriteria<Lot>>();
@@ -81,7 +86,14 @@ public class LotService : ILotService
                 continue;
             }
 
-            lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(lotDto.Id, userId);
+            if (userId is not null)
+            {
+                lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(lotDto.Id, userId);
+            }
+            else
+            {
+                lotDto.IsSaved = false;
+            }
 
             lotDto.Status = GetStatus(lot);
 
@@ -100,7 +112,7 @@ public class LotService : ILotService
         };
     }
 
-    public async Task<GetLotDto> GetLotByIdAsync(int id, string userId)
+    public async Task<GetLotDto> GetLotByIdAsync(int id, string? userId)
     {
         var lot = await _unitOfWork.Lots.GetByIdAsync(id);
         if (lot == null)
@@ -118,8 +130,14 @@ public class LotService : ILotService
         lotDto.Images = pictures.Select(pic => 
                 Convert.ToBase64String(pic.Data ?? throw new NullReferenceException("Image is null.")))
                 .ToList();
-        
-        lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(id, userId);
+        if (userId is not null)
+        {
+            lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(id, userId);
+        }
+        else
+        {
+            lotDto.IsSaved = false;
+        }
         
         if (lot.Bets != null && lot.Bets.Any())
         {
@@ -128,16 +146,24 @@ public class LotService : ILotService
         return lotDto;
     }
 
-    public async Task DeleteLotAsync(int id)
+    public async Task DeleteLotAsync(int id, string userId)
     {
-        var lot = await _unitOfWork.Lots.GetByIdAsync(id);
-        if (lot == null)
+        if (await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId) is null)
         {
-            throw new EntityNotFoundException($"Lot with ID {id} not found");
+            throw new EntityNotFoundException($"No user with Id {userId}.");
         }
+
+        var lot = await _unitOfWork.Lots.GetByIdAsync(id)
+            ?? throw new EntityNotFoundException($"Lot with ID {id} not found.");
+
+        if (lot.OwnerId != userId)
+        {
+            throw new AuthenticationException("You can't delete someone else's lot.");
+        }
+        
         if (lot.DateStarted < _timeProvider.Now)
         {
-            throw new LotAlreadyStartedException("You cannot delete a lot that has already started");
+            throw new LotAlreadyStartedException("You cannot delete a lot that has already started.");
         }
         var hasBids = await _unitOfWork.Bets.AnyAsync(b => b.LotId == id);
         if (hasBids)

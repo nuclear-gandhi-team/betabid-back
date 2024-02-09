@@ -1,6 +1,6 @@
 using Betabid.Application.DTOs.UserDtos;
 
-namespace Betabid.Application.Interfaces.Services;
+namespace Betabid.Application.Services.Interfaces;
 
 public interface IUserService
 {

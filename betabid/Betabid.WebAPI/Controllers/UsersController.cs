@@ -1,10 +1,10 @@
 using Betabid.Application.DTOs.UserDtos;
-using Betabid.Application.Interfaces.Services;
+using Betabid.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace betabid.Controllers;
 
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;

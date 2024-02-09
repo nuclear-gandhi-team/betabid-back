@@ -7,8 +7,9 @@ using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Exceptions;
 using Betabid.Application.Helpers.Options;
 using Betabid.Application.Interfaces.Repositories;
-using Betabid.Application.Interfaces.Services;
+using Betabid.Application.Services.Interfaces;
 using Betabid.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -64,6 +65,7 @@ public class UserService : IUserService
         }
     }
 
+    [Authorize]
     public async Task<GetFullUserDto> GetUserByIdAsync(string id)
     {
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -71,6 +73,7 @@ public class UserService : IUserService
         return _mapper.Map<GetFullUserDto>(user)!;
     }
 
+    [Authorize]
     public async Task DeleteUserByIdAsync(string id)
     {
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id)
@@ -79,6 +82,7 @@ public class UserService : IUserService
         await _userManager.DeleteAsync(user);
     }
 
+    [Authorize]
     public async Task UpdateUserDataAsync(UpdateUserDto updateUserDto)
     {
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == updateUserDto.Id)
@@ -105,6 +109,7 @@ public class UserService : IUserService
         }
     }
 
+    [Authorize]
     public async Task UpdateUserPasswordAsync(UpdateUserPasswordDto updateUserDto)
     {
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == updateUserDto.Id)
@@ -133,6 +138,7 @@ public class UserService : IUserService
         }
     }
 
+    [Authorize]
     public async Task SaveLotAsync(SaveLotRequestDto saveLotRequestDto)
     {
         var user = await _userManager.Users

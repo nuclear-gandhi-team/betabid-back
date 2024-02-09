@@ -1,4 +1,3 @@
-using Betabid.Application.Interfaces.Services;
 using Betabid.Application.Services.Implementations;
 using Betabid.Application.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
