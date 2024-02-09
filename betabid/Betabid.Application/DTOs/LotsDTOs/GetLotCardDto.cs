@@ -1,6 +1,6 @@
 namespace Betabid.Application.DTOs.LotsDTOs;
 
-public class GetLotsDto
+public class GetLotCardDto
 {
     public int Id { get; set; }
     

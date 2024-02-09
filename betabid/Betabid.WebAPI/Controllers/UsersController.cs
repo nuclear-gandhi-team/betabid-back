@@ -1,5 +1,7 @@
+using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Services.Interfaces;
+using betabid.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace betabid.Controllers;
@@ -80,5 +82,20 @@ public class UsersController : ControllerBase
         await _userService.SaveLotAsync(saveLotRequestDto);
 
         return Ok();
+    }
+    
+    [HttpGet]
+    [Route("user-lots")]
+    public async Task<IActionResult> GetUserLotsAsync([FromQuery] FilteringOptionsDto filteringOptionsDto)
+    {
+        var userId = await this.GetUserIdFromJwtAsync();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+        
+        var lots = await _userService.GetUserLotsAsync(userId, filteringOptionsDto);
+
+        return Ok(lots);
     }
 }

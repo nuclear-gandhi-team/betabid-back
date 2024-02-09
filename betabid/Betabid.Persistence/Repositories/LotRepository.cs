@@ -33,7 +33,7 @@ public class LotRepository : Repository<Lot>, ILotRepository
                ?? throw new InvalidOperationException();
     }
 
-    public async Task<(IEnumerable<Lot> lots, int TotalPages)> GetAllFilteredAsync(
+    public async Task<(IList<Lot> lots, int TotalPages)> GetAllFilteredAsync(
         Expression<Func<Lot, bool>> predicate, FilteringOptionsDto filterOptions)
     {
         var lots = _context.Lots

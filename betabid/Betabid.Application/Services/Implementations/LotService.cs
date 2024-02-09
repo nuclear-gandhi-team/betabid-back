@@ -75,10 +75,10 @@ public class LotService : ILotService
 
         if (!filteredLots.Any())
         {
-         return new LotsWithPagination();
+            return new LotsWithPagination();
         }
     
-        var lotsDto = _mapper.Map<IEnumerable<GetLotsDto>>(filteredLots);
+        var lotsDto = _mapper.Map<IEnumerable<GetLotCardDto>>(filteredLots);
 
         foreach (var lotDto in lotsDto)
         {
@@ -97,7 +97,7 @@ public class LotService : ILotService
                 lotDto.IsSaved = false;
             }
 
-            lotDto.Status = GetStatus(lot);
+            lotDto.Status = new StatusHelper(_timeProvider).GetStatus(lot); 
 
             var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(lotDto.Id);
             lotDto.Tags = tags?.Tags?.Select(t => t.Name).ToList() ?? new List<string> { "Other" };
@@ -125,7 +125,7 @@ public class LotService : ILotService
         var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(id);
         lot.Tags = tags.Tags;
         var lotDto = _mapper.Map<GetLotDto>(lot) ?? throw new NullReferenceException("Error mapping.");
-        lotDto.Status = GetStatus(lot); 
+        lotDto.Status = new StatusHelper(_timeProvider).GetStatus(lot); 
         
         var pictures = await _unitOfWork.Pictures.GetPicturesByLotIdAsync(id);
         
@@ -195,19 +195,6 @@ public class LotService : ILotService
         };
     }
 
-    private string GetStatus(Lot lot)
-    {
-        if (_timeProvider.Now < lot.DateStarted)
-        {
-            return LotStatus.Preparing.ToString();
-        }
-        if (_timeProvider.Now >= lot.DateStarted && _timeProvider.Now < lot.Deadline)
-        {
-            return LotStatus.Open.ToString();
-        }
-        return LotStatus.Finished.ToString();
-    } 
-    
     private async Task HandleTagsAsync(AddLotDto newLot, Lot lot)
     {
         if (!newLot.TagIds.Any())

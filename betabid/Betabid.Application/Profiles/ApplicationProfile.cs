@@ -12,7 +12,7 @@ public class ApplicationProfile : Profile
 {
     public ApplicationProfile()
     {
-        CreateMap<Lot, GetLotsDto>()
+        CreateMap<Lot, GetLotCardDto>()
             .ForMember(dto => dto.Title, opt => opt.MapFrom(lot => lot.Name))
             .ForMember(dto => dto.Tags, opt => opt.MapFrom(lot => lot.Tags.Select(t => t.Name).ToList()))
             .ForMember(dest=>dest.CurrentPrice, opt => opt.MapFrom(src => src.Bets.Any() ? src.Bets.Max(b => b.Amount) : src.StartPrice))

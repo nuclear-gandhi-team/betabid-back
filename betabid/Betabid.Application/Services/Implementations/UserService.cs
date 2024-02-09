@@ -3,12 +3,18 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using Betabid.Application.DTOs.FilteringDto;
+using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Exceptions;
+using Betabid.Application.Filtering;
+using Betabid.Application.Filtering.Lots;
+using Betabid.Application.Helpers;
 using Betabid.Application.Helpers.Options;
 using Betabid.Application.Interfaces.Repositories;
 using Betabid.Application.Services.Interfaces;
 using Betabid.Domain.Entities;
+using LinqKit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,14 +28,21 @@ public class UserService : IUserService
     private readonly UserManager<User> _userManager;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ITimeProvider _timeProvider;
 
     private readonly JwtOptions _jwtOptions;
     
-    public UserService(UserManager<User> userManager, IMapper mapper, IOptions<JwtOptions> jwtOptions, IUnitOfWork unitOfWork)
+    public UserService(
+        UserManager<User> userManager,
+        IMapper mapper,
+        IOptions<JwtOptions> jwtOptions,
+        IUnitOfWork unitOfWork,
+        ITimeProvider timeProvider)
     {
         _userManager = userManager;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
+        _timeProvider = timeProvider;
         _jwtOptions = jwtOptions.Value;
     }
     
@@ -151,6 +164,76 @@ public class UserService : IUserService
         await _unitOfWork.Saved.AddAsync(new Saved { User = user, Lot = lot });
 
         await _unitOfWork.CommitAsync();
+    }
+
+    public async Task<LotsWithPagination> GetUserLotsAsync(string userId, FilteringOptionsDto filteringOptionsDto)
+    {
+        if (await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId) is null)
+        {
+            throw new EntityNotFoundException($"No user with Id '{userId}'");
+        }
+                   
+        var predicate = PredicateBuilder.New<Lot>(true);
+        var specifications = new List<IFilteringCriteria<Lot>>();
+        
+        specifications.Add(new LotOwnerFilteringCriteria(userId));
+        
+        if (filteringOptionsDto.Tags != null && filteringOptionsDto.Tags.Any())
+        {
+            specifications.Add(new TagsFilteringCriteria(filteringOptionsDto.Tags));
+        }
+        if (filteringOptionsDto.Status != null)
+        {
+            specifications.Add(new LotStatusFilteringCriteria(filteringOptionsDto.Status.Value, _timeProvider));
+        }
+        if (filteringOptionsDto.NameStartsWith != null)
+        {
+            specifications.Add(new LotNameFilteringCriteria(filteringOptionsDto.NameStartsWith));
+        }
+        
+        predicate = specifications.Aggregate(predicate, (current, specification) => current.And(specification.Criteria));
+
+        var (filteredLots, totalCount) = await _unitOfWork.Lots.GetAllFilteredAsync(predicate, filteringOptionsDto);
+
+        if (!filteredLots.Any())
+        {
+            return new LotsWithPagination();
+        }
+    
+        var lotsDto = _mapper.Map<IEnumerable<GetLotCardDto>>(filteredLots);
+
+        foreach (var lotDto in lotsDto)
+        {
+            var lot = filteredLots.FirstOrDefault(lot => lot.Id == lotDto.Id);
+            if (lot == null)
+            {
+                continue;
+            }
+
+            if (userId is not null)
+            {
+                lotDto.IsSaved = await _unitOfWork.Lots.IsLotSavedByUserAsync(lotDto.Id, userId);
+            }
+            else
+            {
+                lotDto.IsSaved = false;
+            }
+
+            lotDto.Status = new StatusHelper(_timeProvider).GetStatus(lot); 
+
+            var tags = await _unitOfWork.Lots.GetByIdWithTagsAsync(lotDto.Id);
+            lotDto.Tags = tags?.Tags?.Select(t => t.Name).ToList() ?? new List<string> { "Other" };
+
+            var picture = await _unitOfWork.Pictures.GetPictureByLotIdAsync(lotDto.Id);
+            lotDto.Image = picture != null ? Convert.ToBase64String(picture.Data) : null;
+        }
+    
+        return new LotsWithPagination
+        {
+            Lots = lotsDto,
+            TotalPages = totalCount,
+            CurrentPage = filteringOptionsDto.Page ?? 1
+        };
     }
 
     private string GenerateJwtAsync(User user)
