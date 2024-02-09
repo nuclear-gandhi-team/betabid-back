@@ -1,10 +1,13 @@
+using Betabid.Application.DTOs.BetDtos;
+using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.UserDtos;
-using Betabid.Application.Interfaces.Services;
+using Betabid.Application.Services.Interfaces;
+using betabid.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace betabid.Controllers;
 
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -78,6 +81,36 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> SaveLot([FromBody] SaveLotRequestDto saveLotRequestDto)
     {
         await _userService.SaveLotAsync(saveLotRequestDto);
+
+        return Ok();
+    }
+    
+    [HttpGet]
+    [Route("user-lots")]
+    public async Task<IActionResult> GetUserLotsAsync([FromQuery] FilteringOptionsDto filteringOptionsDto)
+    {
+        var userId = await this.GetUserIdFromJwtAsync();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+        
+        var lots = await _userService.GetUserLotsAsync(userId, filteringOptionsDto);
+
+        return Ok(lots);
+    }
+    
+    [HttpPost]
+    [Route("bet")]
+    public async Task<IActionResult> BetAsync([FromBody] MakeBetDto makeBetDto)
+    {
+        var userId = await this.GetUserIdFromJwtAsync();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+        
+        await _userService.BetAsync(userId, makeBetDto);
 
         return Ok();
     }

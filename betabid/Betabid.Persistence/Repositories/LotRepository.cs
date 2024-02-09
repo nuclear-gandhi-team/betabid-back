@@ -30,10 +30,18 @@ public class LotRepository : Repository<Lot>, ILotRepository
             .Include(lot => lot.Tags)
             .Include(lot => lot.Bets)
             .FirstOrDefaultAsync(lot => lot.Id == id)
-               ?? throw new InvalidOperationException();
+               ?? throw new InvalidOperationException($"No lot with Id '{id}' or its sub-items");
+    }
+    
+    public async Task<Lot> GetByIdWithBetsAsync(int id)
+    {
+        return await _context.Lots
+                   .Include(lot => lot.Bets)
+                   .FirstOrDefaultAsync(lot => lot.Id == id)
+               ?? throw new InvalidOperationException($"No lot with Id '{id}' or its sub-items");
     }
 
-    public async Task<(IEnumerable<Lot> lots, int TotalPages)> GetAllFilteredAsync(
+    public async Task<(IList<Lot> lots, int TotalPages)> GetAllFilteredAsync(
         Expression<Func<Lot, bool>> predicate, FilteringOptionsDto filterOptions)
     {
         var lots = _context.Lots

@@ -9,7 +9,9 @@ public interface ILotRepository : IRepository<Lot>
     Task<bool> IsLotSavedByUserAsync(int lotId, string userId);
 
     Task<Lot> GetByIdWithTagsAsync(int id);
+
+    Task<Lot> GetByIdWithBetsAsync(int id);
     
-    Task<(IEnumerable<Lot> lots, int TotalPages)> GetAllFilteredAsync(
+    Task<(IList<Lot> lots, int TotalPages)> GetAllFilteredAsync(
         Expression<Func<Lot, bool>> predicate, FilteringOptionsDto filterOptions);
 }

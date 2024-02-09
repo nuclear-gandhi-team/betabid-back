@@ -1,6 +1,7 @@
 using AutoMapper;
 using Betabid.Application.DTOs.BetDtos;
 using Betabid.Application.DTOs.LotsDTOs;
+using Betabid.Application.DTOs.TagsDtos;
 using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Helpers;
 using Betabid.Domain.Entities;
@@ -11,7 +12,7 @@ public class ApplicationProfile : Profile
 {
     public ApplicationProfile()
     {
-        CreateMap<Lot, GetLotsDto>()
+        CreateMap<Lot, GetLotCardDto>()
             .ForMember(dto => dto.Title, opt => opt.MapFrom(lot => lot.Name))
             .ForMember(dto => dto.Tags, opt => opt.MapFrom(lot => lot.Tags.Select(t => t.Name).ToList()))
             .ForMember(dest=>dest.CurrentPrice, opt => opt.MapFrom(src => src.Bets.Any() ? src.Bets.Max(b => b.Amount) : src.StartPrice))
@@ -37,7 +38,7 @@ public class ApplicationProfile : Profile
             .ForMember(dest=>dest.ActiveUsersCount, opt => opt.MapFrom(src => src.Bets.Select(b => b.UserId).Distinct().Count()))
             .ReverseMap();
 
-        CreateMap<Bet, BetDto>()
+        CreateMap<Bet, GetBetDto>()
             .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Name))
@@ -55,5 +56,6 @@ public class ApplicationProfile : Profile
                 opt => opt.MapFrom(src => src.Login))
             .ReverseMap();
 
+        CreateMap<Tag, GetTagDto>().ReverseMap();
     }
 }

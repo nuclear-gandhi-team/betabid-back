@@ -6,7 +6,7 @@ public class User : IdentityUser
 {
     public string Name { get; set; } = default!;
 
-    public decimal Balance { get; set; }
+    public decimal Balance { get; set; } = 10000;
 
     public virtual IList<Lot> Lots { get; set; } = default!;
 
