@@ -11,7 +11,7 @@ public static class JwtParserExtensions
     {
         var authenticateResult = await controllerBase.HttpContext.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
 
-        // controllerBase.HttpContext.User = authenticateResult.Principal!;
+        controllerBase.HttpContext.User = authenticateResult.Principal!;
 
         if (authenticateResult.Succeeded)
         {

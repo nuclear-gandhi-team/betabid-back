@@ -36,7 +36,18 @@ builder.Services.AddAutoMapper(typeof(ApplicationProfile));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString = builder.Configuration.GetConnectionString("ConnStr");
+string connectionString;
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("LocalConnStr")
+        ?? throw new NullReferenceException("Connection string to local DB os not set.");
+}
+else
+{
+    connectionString = builder.Configuration.GetConnectionString("AzureConnStr")
+                       ?? throw new NullReferenceException("Connection string to Azure DB os not set.");
+}
+    
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -45,6 +56,20 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddDefaultTokenProviders();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var dbContext = services.GetRequiredService<DataContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"{ex.Message} - An error occurred while applying the database migrations.");
+    }
+}
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
@@ -57,11 +82,11 @@ app.UseCors(corsPolicyBuilder => corsPolicyBuilder
 
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+/*if (app.Environment.IsDevelopment())
+{*/
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+/*}*/
 
 app.UseHttpsRedirection();
 
