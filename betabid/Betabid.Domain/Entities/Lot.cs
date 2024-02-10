@@ -30,4 +30,6 @@ public class Lot : BaseEntity
     public virtual IEnumerable<Saved>? SavedBy { get; set; } = default!;
     
     public virtual IList<Bet> Bets { get; set; } = default!;
+    
+    public virtual IList<Comment> Comments { get; set; } = default!;
 }

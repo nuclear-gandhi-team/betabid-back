@@ -10,5 +10,6 @@ public static class RegisterServices
     {
         builder.AddScoped<ILotService, LotService>();
         builder.AddScoped<IUserService, UserService>();
+        builder.AddScoped<ICommentService, CommentService>();
     }
 }

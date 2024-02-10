@@ -20,6 +20,8 @@ public class DataContext : IdentityDbContext<User>
     public virtual DbSet<Tag> Tags { get; set; }
     
     public virtual DbSet<Saved> Saved { get; set; }
+    
+    public virtual DbSet<Comment> Comments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

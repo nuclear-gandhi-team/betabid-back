@@ -8,7 +8,15 @@ public class UnitOfWork : IUnitOfWork
     private readonly DataContext _context;
     private bool _disposed;
     
-    public UnitOfWork(DataContext context, ITagRepository tags, IBetRepository bets, ILotRepository lots, IPictureRepository pictures, ISavedRepository saved, IUserRepository users)
+    public UnitOfWork(
+        DataContext context,
+        ITagRepository tags,
+        IBetRepository bets,
+        ILotRepository lots,
+        IPictureRepository pictures,
+        ISavedRepository saved,
+        IUserRepository users,
+        ICommentRepository comments)
     {
         _context = context;
         Tags = tags;
@@ -17,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
         Pictures = pictures;
         Saved = saved;
         Users = users;
+        Comments = comments;
     }
 
     public IBetRepository Bets { get; }
@@ -30,6 +39,8 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     
     public ITagRepository Tags { get; set; }
+    
+    public ICommentRepository Comments { get; set; }
 
     public async Task CommitAsync()
     {
