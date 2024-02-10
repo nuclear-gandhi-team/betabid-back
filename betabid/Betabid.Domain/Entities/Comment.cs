@@ -17,5 +17,10 @@ public class Comment : BaseEntity
 
     public User User { get; set; } = default!;
 
+    [ForeignKey(nameof(ParentComment))]
     public int? ParentCommentId { get; set; }
+    
+    public Comment? ParentComment { get; set; }
+
+    public IEnumerable<Comment> SubComments { get; set; } = default!;
 }

@@ -11,6 +11,8 @@ public interface ILotRepository : IRepository<Lot>
     Task<Lot> GetByIdWithTagsAsync(int id);
 
     Task<Lot> GetByIdWithBetsAsync(int id);
+
+    Task<Lot> GetByIdWithCommentsAsync(int id);
     
     Task<(IList<Lot> lots, int TotalPages)> GetAllFilteredAsync(
         Expression<Func<Lot, bool>> predicate, FilteringOptionsDto filterOptions);

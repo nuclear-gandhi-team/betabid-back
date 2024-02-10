@@ -1,4 +1,3 @@
-using Betabid.Application.DTOs;
 using Betabid.Application.DTOs.CommentDtos;
 using Betabid.Application.Services.Interfaces;
 using betabid.Extensions;
@@ -18,7 +17,7 @@ public class CommentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddCommentAsync([FromBody] CreateCommentDto createCommentDto, int lotId)
+    public async Task<IActionResult> AddCommentAsync([FromBody] CreateCommentDto createCommentDto)
     {
         var userId = await this.GetUserIdFromJwtAsync();
         if (userId is null)

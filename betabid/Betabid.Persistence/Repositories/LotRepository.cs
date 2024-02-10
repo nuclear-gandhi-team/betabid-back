@@ -41,6 +41,14 @@ public class LotRepository : Repository<Lot>, ILotRepository
                ?? throw new InvalidOperationException($"No lot with Id '{id}' or its sub-items");
     }
 
+    public async Task<Lot> GetByIdWithCommentsAsync(int id)
+    {
+        return await _context.Lots
+                   .Include(lot => lot.Comments)
+                   .FirstOrDefaultAsync(lot => lot.Id == id)
+               ?? throw new InvalidOperationException($"No lot with Id '{id}' or its sub-items");
+    }
+
     public async Task<(IList<Lot> lots, int TotalPages)> GetAllFilteredAsync(
         Expression<Func<Lot, bool>> predicate, FilteringOptionsDto filterOptions)
     {

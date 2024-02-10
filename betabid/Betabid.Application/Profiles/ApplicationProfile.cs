@@ -1,5 +1,6 @@
 using AutoMapper;
 using Betabid.Application.DTOs.BetDtos;
+using Betabid.Application.DTOs.CommentDtos;
 using Betabid.Application.DTOs.LotsDTOs;
 using Betabid.Application.DTOs.TagsDtos;
 using Betabid.Application.DTOs.UserDtos;
@@ -57,5 +58,12 @@ public class ApplicationProfile : Profile
             .ReverseMap();
 
         CreateMap<Tag, GetTagDto>().ReverseMap();
+        
+        CreateMap<Comment, GetCommentDto>()
+            .ForMember(dest => dest.UserName,
+                opt => opt.MapFrom(src => src.User.UserName))
+            .ForMember(dest => dest.ChildComments,
+                opt => opt.MapFrom(src => src.SubComments))
+            .ReverseMap();
     }
 }
