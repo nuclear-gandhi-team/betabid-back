@@ -14,5 +14,7 @@ public interface IUnitOfWork
     
     ITagRepository Tags { get; }
     
+    ICommentRepository Comments { get; }
+    
     Task CommitAsync();
 }
