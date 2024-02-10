@@ -62,7 +62,7 @@ public class CommentService : ICommentService
     public async Task<IList<GetCommentDto>> GetAllLotCommentsAsync(int lotId)
     {
         var lot = await _unitOfWork.Lots.GetByIdWithCommentsAsync(lotId)
-                   ?? throw new EntityNotFoundException($"No game with alias '{lotId}'");
+                   ?? throw new EntityNotFoundException($"No lot with id '{lotId}'");
 
         var comments = (await _unitOfWork.Comments.GetAllAsync())
             .Where(c => c.LotId == lot.Id && c.ParentCommentId is null)
