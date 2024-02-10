@@ -46,7 +46,7 @@ public class UsersController : ControllerBase
 
     [HttpPut]
     [Route("update-user-data")]
-    public async Task<IActionResult> UpdateUserData(UpdateUserDto updateUserDto)
+    public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserDto updateUserDto)
     {
         if (!ModelState.IsValid)
         {
@@ -60,7 +60,7 @@ public class UsersController : ControllerBase
     
     [HttpPut]
     [Route("update-user-password")]
-    public async Task<IActionResult> UpdateUserPassword(UpdateUserPasswordDto updateUserDto)
+    public async Task<IActionResult> UpdateUserPassword([FromBody] UpdateUserPasswordDto updateUserDto)
     {
         await _userService.UpdateUserPasswordAsync(updateUserDto);
 
