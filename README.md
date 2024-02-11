@@ -350,8 +350,52 @@ Responce
   None
 ```
 
+## Comments
+
+### /api/comments POST
+Request (From query(!))
+```js
+{ lotId }
+```
+
+Responce
+```js
+[
+  {
+    "id": "1",
+    "userId": "2a22882e-2b64-4a06-8ecd-c5ae06d42dd5",
+    "userName": "string",
+    "body": "this is some kind of comment",
+    "childComments": [
+      {
+        "id": "2",
+        "userId": "2a22882e-2b64-4a06-8ecd-c5ae06d42dd5",
+        "userName": "string",
+        "body": "this is some kind of reply comment",
+        "childComments": []
+      }
+    ]
+  }
+]
+```
+
+### /api/comments/{lotId} GET
+Request (From query(!))
+```js
+{
+  "lotId": 0,
+  "parentCommentId": 0,
+  "body": "string"
+}
+```
+
+Responce
+```js
+  None
+```
+
 ## Database structure
-![image](https://github.com/nuclear-gandhi-team/betabid-back/assets/58270142/385a45d2-a8b6-4bbb-a90f-43a965e3b021)
+![image](https://github.com/nuclear-gandhi-team/betabid-back/assets/58270142/7c36a30c-3c07-4ee1-bab6-37ccb338b5c1)
 https://drawsql.app/teams/just-team-5/diagrams/betabid
 <br>
 Tables Users and Jwt is for demonstration only. Identity framework will populate DB with this.
