@@ -29,6 +29,7 @@ public class LotRepository : Repository<Lot>, ILotRepository
             .Include(lot => lot.Pictures)
             .Include(lot => lot.Tags)
             .Include(lot => lot.Bets)
+            .ThenInclude(bet => bet.User)
             .FirstOrDefaultAsync(lot => lot.Id == id)
                ?? throw new InvalidOperationException($"No lot with Id '{id}' or its sub-items");
     }

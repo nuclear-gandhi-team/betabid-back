@@ -46,6 +46,11 @@ public class ExceptionHandlerMiddleware
             LotAlreadyStartedException => StatusCodes.Status400BadRequest,
             LotAlreadySavedException => StatusCodes.Status400BadRequest,
             LotHasBidsException => StatusCodes.Status400BadRequest,
+            EmptyCommentException => StatusCodes.Status400BadRequest,
+            InsufficientFundsException => StatusCodes.Status400BadRequest,
+            InvalidBetStepException => StatusCodes.Status400BadRequest,
+            LotDateException => StatusCodes.Status400BadRequest,
+            
             _ => StatusCodes.Status500InternalServerError,
         };
 

@@ -3,6 +3,7 @@ using Betabid.Application.DTOs.FilteringDto;
 using Betabid.Application.DTOs.UserDtos;
 using Betabid.Application.Services.Interfaces;
 using betabid.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace betabid.Controllers;
@@ -37,7 +38,7 @@ public class UsersController : ControllerBase
     
     [HttpGet]
     [Route("{userId}")]
-    public async Task<IActionResult> Register(string userId)
+    public async Task<IActionResult> GetUserById(string userId)
     {
         var userDto = await _userService.GetUserByIdAsync(userId);
 
@@ -45,6 +46,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize]
     [Route("update-user-data")]
     public async Task<IActionResult> UpdateUserData([FromBody] UpdateUserDto updateUserDto)
     {
@@ -59,6 +61,7 @@ public class UsersController : ControllerBase
     }
     
     [HttpPut]
+    [Authorize]
     [Route("update-user-password")]
     public async Task<IActionResult> UpdateUserPassword([FromBody] UpdateUserPasswordDto updateUserDto)
     {
@@ -68,6 +71,7 @@ public class UsersController : ControllerBase
     }
     
     [HttpDelete]
+    [Authorize]
     [Route("delete/{id}")]
     public async Task<IActionResult> DeleteUserById([FromRoute] string id)
     {
@@ -77,6 +81,7 @@ public class UsersController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize]
     [Route("save")]
     public async Task<IActionResult> SaveLot([FromBody] SaveLotRequestDto saveLotRequestDto)
     {

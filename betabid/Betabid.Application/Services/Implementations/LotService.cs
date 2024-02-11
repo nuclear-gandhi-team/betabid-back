@@ -44,7 +44,7 @@ public class LotService : ILotService
         
         await HandleTagsAsync(newLot, lot);
         
-        lot!.Pictures = await HandlePicturesAsync(pictures, lot);
+        lot.Pictures = await HandlePicturesAsync(pictures, lot);
 
         await _unitOfWork.Lots.AddAsync(lot);
         await _unitOfWork.CommitAsync();
