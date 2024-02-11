@@ -80,13 +80,8 @@ app.UseCors(corsPolicyBuilder => corsPolicyBuilder
     .WithExposedHeaders("Content-Disposition")
     .WithOrigins("http://localhost:8080"));
 
-
-// Configure the HTTP request pipeline.
-/*if (app.Environment.IsDevelopment())
-{*/
-    app.UseSwagger();
-    app.UseSwaggerUI();
-/*}*/
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
