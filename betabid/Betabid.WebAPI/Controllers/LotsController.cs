@@ -20,18 +20,23 @@ public class LotsController : ControllerBase
         _lotService = lotService;
         _lotValidator = lotValidator;
     }
-    
-    [Authorize]
+
     [HttpPost ("create")]
     public async Task<IActionResult> CreateNewLotAsync([FromForm] AddLotDto newLotDto, [FromForm] IList<IFormFile> pictures)
     {
+        var userId = await this.GetUserIdFromJwtAsync();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+        
         var validationResult = await _lotValidator.ValidateAsync(newLotDto);
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(validationResult.Errors);
+            return BadRequest(validationResult.Errors + newLotDto.Name);
         }
-        var createdLot = await _lotService.CreateNewLotAsync(newLotDto, pictures);
+        var createdLot = await _lotService.CreateNewLotAsync(newLotDto, pictures, userId);
         return Ok(createdLot);
     }
     

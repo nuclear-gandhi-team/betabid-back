@@ -16,7 +16,5 @@ public class AddLotDto
 
     public decimal BetStep { get; set; }
 
-    public string OwnerId { get; set; } = null!;
-
     public List<int> TagIds { get; set; } = new();
 }

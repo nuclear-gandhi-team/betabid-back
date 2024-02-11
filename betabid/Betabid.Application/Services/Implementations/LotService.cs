@@ -34,12 +34,15 @@ public class LotService : ILotService
         _userManager = userManager;
     }
 
-    public async Task<AddLotResponseDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures)
+    public async Task<AddLotResponseDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures, string userId)
     {
         ValidateAddingNewLot(newLot, pictures);
-        var lot = _mapper.Map<Lot>(newLot);
+        var lot = _mapper.Map<Lot>(newLot)
+            ?? throw new ArgumentException("Error mapping lot while creating");
+
+        lot.OwnerId = userId;
         
-        await HandleTagsAsync(newLot, lot!);
+        await HandleTagsAsync(newLot, lot);
         
         lot!.Pictures = await HandlePicturesAsync(pictures, lot);
 
@@ -48,8 +51,7 @@ public class LotService : ILotService
 
         var lotDto = new AddLotResponseDto { LotId = lot.Id };
 
-        return lotDto!;
-        
+        return lotDto;
     }
 
     public async Task<LotsWithPagination> GetAllLotsAsync(FilteringOptionsDto filteringOptionsDto, string? userId)

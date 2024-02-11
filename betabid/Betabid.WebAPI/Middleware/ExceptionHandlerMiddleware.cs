@@ -35,6 +35,7 @@ public class ExceptionHandlerMiddleware
         context.Response.StatusCode = exception switch
         {
             AuthenticationException => StatusCodes.Status401Unauthorized,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
             ArgumentException => StatusCodes.Status400BadRequest,
             ValidationException => StatusCodes.Status400BadRequest,
             EntityNotFoundException => StatusCodes.Status404NotFound,
