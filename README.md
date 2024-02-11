@@ -41,7 +41,9 @@ Request (from form(!))
 
 Responce
 ```js
-  None
+{
+  "lotId": 0
+}
 ```
 
 ### /api/lots/delete/{id} DELETE
@@ -140,10 +142,10 @@ Responce
 }
 ```
 
-### /api/lots/delete/tags GET
+### /api/lots/tags GET
 Request
 ```js
----
+  None
 ```
 
 Responce
@@ -155,10 +157,10 @@ Responce
 ]
 ```
 
-### /api/lots/delete/statuses GET
+### /api/lots/statuses GET
 Request
 ```js
----
+  None
 ```
 
 Responce
@@ -205,7 +207,7 @@ Responce
 ### /api/users/{userId} GET
 Request
 ```js
-{userId}
+  {userId}
 ```
 
 Responce
