@@ -8,7 +8,7 @@ namespace Betabid.Application.Services.Interfaces;
 
 public interface ILotService
 {
-    Task<AddLotDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures);
+    Task<AddLotResponseDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures);
     
     Task<LotsWithPagination> GetAllLotsAsync(FilteringOptionsDto filteringOptionsDto, string? userId);
     

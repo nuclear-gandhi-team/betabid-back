@@ -34,7 +34,7 @@ public class LotService : ILotService
         _userManager = userManager;
     }
 
-    public async Task<AddLotDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures)
+    public async Task<AddLotResponseDto> CreateNewLotAsync(AddLotDto newLot, IList<IFormFile> pictures)
     {
         ValidateAddingNewLot(newLot, pictures);
         var lot = _mapper.Map<Lot>(newLot);
@@ -45,8 +45,8 @@ public class LotService : ILotService
 
         await _unitOfWork.Lots.AddAsync(lot);
         await _unitOfWork.CommitAsync();
-        
-        var lotDto = _mapper.Map<AddLotDto>(lot);
+
+        var lotDto = new AddLotResponseDto { LotId = lot.Id };
 
         return lotDto!;
         
